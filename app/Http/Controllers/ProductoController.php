@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductoController extends Controller
 {
-    public function __construct(){ $this->middleware('auth'); }
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
 
     public function index(Request $request)
     {
@@ -21,18 +24,18 @@ class ProductoController extends Controller
         $familia_id = $request->get('familia_id');
         $categoria_id = $request->get('categoria_id');
 
-        $productos = Producto::with(['familia','categoria'])
-            ->when($q, fn($w)=>$w->where('nombre','like',"%$q%"))
-            ->when($familia_id, fn($w)=>$w->where('familia_id',$familia_id))
-            ->when($categoria_id, fn($w)=>$w->where('categoria_id',$categoria_id))
-            ->orderBy('id','desc')->paginate(10)->withQueryString();
+        $productos = Producto::with(['familia', 'categoria'])
+            ->when($q, fn($w) => $w->where('nombre', 'like', "%$q%"))
+            ->when($familia_id, fn($w) => $w->where('familia_id', $familia_id))
+            ->when($categoria_id, fn($w) => $w->where('categoria_id', $categoria_id))
+            ->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         $familias = Familia::orderBy('nombre')->get();
         $categorias = $familia_id
-            ? Categoria::where('familia_id',$familia_id)->orderBy('nombre')->get()
+            ? Categoria::where('familia_id', $familia_id)->orderBy('nombre')->get()
             : collect();
 
-        return view('productos.index', compact('productos','q','familias','categorias','familia_id','categoria_id'));
+        return view('productos.index', compact('productos', 'q', 'familias', 'categorias', 'familia_id', 'categoria_id'));
     }
 
     public function store(ProductoStoreRequest $request)
@@ -41,7 +44,7 @@ class ProductoController extends Controller
 
         // Imagen de perfil
         if ($request->hasFile('imagen_perfil')) {
-            $data['imagen_perfil'] = $request->file('imagen_perfil')->store('products/profile','public');
+            $data['imagen_perfil'] = $request->file('imagen_perfil')->store('products/profile', 'public');
         }
 
         $producto = Producto::create($data);
@@ -49,12 +52,12 @@ class ProductoController extends Controller
         // Galería
         if ($request->hasFile('galeria')) {
             foreach ($request->file('galeria') as $img) {
-                $path = $img->store('products/gallery','public');
-                ProductImage::create(['product_id'=>$producto->id,'path'=>$path]);
+                $path = $img->store('products/gallery', 'public');
+                ProductImage::create(['product_id' => $producto->id, 'path' => $path]);
             }
         }
 
-        return back()->with('success','Producto creado correctamente.');
+        return back()->with('success', 'Producto creado correctamente.');
     }
 
     public function update(ProductoUpdateRequest $request, Producto $producto)
@@ -63,7 +66,7 @@ class ProductoController extends Controller
 
         if ($request->hasFile('imagen_perfil')) {
             if ($producto->imagen_perfil) Storage::disk('public')->delete($producto->imagen_perfil);
-            $data['imagen_perfil'] = $request->file('imagen_perfil')->store('products/profile','public');
+            $data['imagen_perfil'] = $request->file('imagen_perfil')->store('products/profile', 'public');
         }
 
         $producto->update($data);
@@ -71,12 +74,12 @@ class ProductoController extends Controller
         // Galería adicional (agregar)
         if ($request->hasFile('galeria')) {
             foreach ($request->file('galeria') as $img) {
-                $path = $img->store('products/gallery','public');
-                ProductImage::create(['product_id'=>$producto->id,'path'=>$path]);
+                $path = $img->store('products/gallery', 'public');
+                ProductImage::create(['product_id' => $producto->id, 'path' => $path]);
             }
         }
 
-        return back()->with('success','Producto actualizado correctamente.');
+        return back()->with('success', 'Producto actualizado correctamente.');
     }
 
     public function destroy(Producto $producto)
@@ -88,13 +91,13 @@ class ProductoController extends Controller
             $img->delete();
         }
         $producto->delete();
-        return back()->with('success','Producto eliminado.');
+        return back()->with('success', 'Producto eliminado.');
     }
 
     public function deleteImage(ProductImage $image)
     {
         Storage::disk('public')->delete($image->path);
         $image->delete();
-        return back()->with('success','Imagen eliminada.');
+        return back()->with('success', 'Imagen eliminada.');
     }
 }
