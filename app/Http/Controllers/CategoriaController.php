@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoriaStoreRequest;
@@ -9,7 +10,10 @@ use Illuminate\Http\Request;
 
 class CategoriaController extends Controller
 {
-    public function __construct(){ $this->middleware('auth'); }
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
 
     public function index(Request $request)
     {
@@ -17,32 +21,32 @@ class CategoriaController extends Controller
         $familia_id = $request->get('familia_id');
 
         $categorias = Categoria::with('familia')
-            ->when($q, fn($w)=>$w->where('nombre','like',"%$q%"))
-            ->when($familia_id, fn($w)=>$w->where('familia_id',$familia_id))
-            ->orderBy('id','desc')->paginate(10)->withQueryString();
+            ->when($q, fn($w) => $w->where('nombre', 'like', "%$q%"))
+            ->when($familia_id, fn($w) => $w->where('familia_id', $familia_id))
+            ->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
         $familias = Familia::orderBy('nombre')->get();
-        return view('categorias.index', compact('categorias','q','familias','familia_id'));
+        return view('categorias.index', compact('categorias', 'q', 'familias', 'familia_id'));
     }
 
     public function store(CategoriaStoreRequest $request)
     {
         Categoria::create($request->validated());
-        return back()->with('success','Categoría creada correctamente.');
+        return back()->with('success', 'Categoría creada correctamente.');
     }
 
     public function update(CategoriaUpdateRequest $request, Categoria $categoria)
     {
         $categoria->update($request->validated());
-        return back()->with('success','Categoría actualizada correctamente.');
+        return back()->with('success', 'Categoría actualizada correctamente.');
     }
 
     public function destroy(Categoria $categoria)
     {
         if ($categoria->productos()->exists()) {
-            return back()->with('danger','No se puede eliminar: tiene productos asociados.');
+            return back()->with('danger', 'No se puede eliminar: tiene productos asociados.');
         }
         $categoria->delete();
-        return back()->with('success','Categoría eliminada.');
+        return back()->with('success', 'Categoría eliminada.');
     }
 }
